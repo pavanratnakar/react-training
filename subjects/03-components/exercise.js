@@ -37,20 +37,48 @@ styles.panel = {
 };
 
 var Tabs = React.createClass({
+
+  getInitialState: function () {
+    return {
+      activeIndex: 0
+    };
+  },
+
+  handleClick: function (index, e) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.setState({
+      activeIndex: index
+    });
+  },
+
   render () {
-    return (
-      <div className="Tabs">
-        <div className="Tab" style={styles.tab}>
-          Inactive
-        </div>
-        <div className="Tab" style={styles.activeTab}>
-          Active
-        </div>
+    var t = this,
+      description = '';
+
+    var tabs = this.props.data.map(function (item, index) {
+      var s = {};
+      if (t.state.activeIndex === index) {
+        s = styles.activeTab;
+        description = item.description;
+      } else {
+        s = styles.tab;
+      }
+      return <div
+                onClick={t.handleClick.bind(t, index)}
+                id={item.id}
+                style={s}
+                className="Tabs">
+                {item.name}
+              </div>
+    });
+
+    return <div>
+        {tabs}
         <div className="TabPanels" style={styles.panel}>
-          Panel
+          {description}
         </div>
-      </div>
-    );
+      </div>;
   }
 });
 
@@ -59,7 +87,7 @@ var App = React.createClass({
     return (
       <div>
         <h1>Countries</h1>
-        <Tabs data={this.props.countries}/>
+        <Tabs data={DATA}/>
       </div>
     );
   }

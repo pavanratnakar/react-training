@@ -24,24 +24,41 @@ var data = require('./lib/data');
 var Tabs = React.createClass({
 
   propTypes: {
-    data: React.PropTypes.array.isRequired
+    data: React.PropTypes.array.isRequired,
+    activeTabIndex: React.PropTypes.number
   },
 
-  getInitialState() {
+  getState: function (props) {
     return {
-      activeTabIndex: 0
+      activeTabIndex: props.activeTabIndex
     };
   },
 
+  getInitialState: function () {
+    return this.getState(this.props);
+  },
+
+  componentWillReceiveProps: function (nextProps) {
+    this.setState(this.getState(nextProps));
+  },
+
   handleTabClick(activeTabIndex) {
-    this.setState({ activeTabIndex });
+    if (this.props.onActiveTab) {
+      this.props.onActiveTab(activeTabIndex);
+    } else {
+      this.setState({
+        activeTabIndex: activeTabIndex
+      });
+    }
   },
 
   renderTabs() {
     return this.props.data.map((tab, index) => {
       var style = this.state.activeTabIndex === index ?
         styles.activeTab : styles.tab;
+
       var clickHandler = this.handleTabClick.bind(this, index);
+
       return (
         <div className="Tab" key={tab.name} style={style} onClick={clickHandler}>
           {tab.name}
@@ -76,11 +93,27 @@ var Tabs = React.createClass({
 
 var App = React.createClass({
 
-  render() {
+  getInitialState: function () {
+    return {
+      activeTabIndex: 0
+    };
+  },
+
+  onActiveTab: function (index) {
+    this.setState({
+      activeTabIndex: index
+    });
+  },
+
+  render: function () {
     return (
       <div>
         <h1>Props v. State</h1>
-        <Tabs ref="tabs" data={this.props.tabs}/>
+        <Tabs
+          ref="tabs"
+          data={this.props.tabs}
+          onActiveTab={this.onActiveTab}
+          activeTabIndex={this.state.activeTabIndex} />
       </div>
     );
   }

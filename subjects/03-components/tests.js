@@ -7,6 +7,7 @@ exports.run = (component) => {
   var html = node.innerHTML;
   var tabs = node.querySelectorAll('.Tab');
   var panels = node.querySelector('.TabPanels');
+  console.log(tabs);
 
   var borderFixture = document.createElement('div');
   borderFixture.setAttribute('style', 'border-bottom-color: #000;');

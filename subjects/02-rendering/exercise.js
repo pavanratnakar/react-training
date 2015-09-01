@@ -27,14 +27,83 @@ var DATA = {
   ]
 };
 
+var active = 'mexican',
+  sort = 1;
+
+function getItems() {
+  var t = this;
+  // transform object
+  var sorted = DATA.items.filter(function (item) {
+    return item.type === active;
+  }).sort(sortBy(sort === 1 ? 'name' : '-name'));
+
+  return sorted.map(function (item) {
+      return <li>{item.name}</li>
+  });
+};
+
+function onSelectChange(e) {
+  active = e.target.value;
+  reactRender();
+};
+
+function onSortChange(e) {
+  active = e.target.value;
+  reactRender();
+}
+
+function buildSortByType() {
+  var uniqueTypes = [];
+
+  DATA.items.map(function (item) {
+    if (!uniqueTypes[item.type]) {
+      uniqueTypes.push(item.type);
+    }
+  });
+
+  return <select onChange={onSelectChange}>
+    {uniqueTypes.map(function (type) {
+      return <option value={type}>{type}</option>
+    })}
+  </select>
+};
+
+function buildSortOrder() {
+  var sortTypes = [{
+    type: 'ascending',
+    value: -1
+  }, {
+    type: 'descending',
+    value: 1
+  }];
+
+  return <select onChange={onSortChange}>
+    {sortTypes.map(function (item) {
+      return <option value={item.value}>{item.type}</option>
+    })}
+  </select>
+};
+
+function buildOptions() {
+  return <div>
+  {buildSortByType()}
+  {buildSortOrder()}
+  </div>
+};
+
 function render() {
   return (
     <div>
-      Open the console, you have failing tests
+      {buildOptions()}
+      <ul>{getItems()}</ul>
     </div>
   );
 }
 
-React.render(render(), document.getElementById('app'), function () {
-  require('./tests').run(this);
-});
+function reactRender() {
+  React.render(render(), document.getElementById('app'), function () {
+    require('./tests').run(this);
+  });
+}
+
+reactRender();
