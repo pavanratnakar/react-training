@@ -10,6 +10,7 @@ module.exports = function (config) {
 
     files: [
       // TODO
+      'tests.webpack.js'
     ],
 
     preprocessors: {

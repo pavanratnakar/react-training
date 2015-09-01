@@ -74,21 +74,40 @@ var Room = React.createClass({
     },
 
     componentDidMount () {
-        this.subscribeToMessages('general');
+        var t = this;
+
+        t.subscribeToMessages('general', function (error, messages) {
+            if (error) {
+                return;
+            }
+            t.setState({
+                messages: messages
+            });
+        });
     },
 
     componentWillReceiveProps (nextProps) {
-        this.subscribeToMessages(nextProps.params.room);
+        var t = this;
+
+        t.subscribeToMessages(nextProps.params.room, function (error, messages) {
+            if (error) {
+                return;
+            }
+            t.setState({
+                messages: messages
+            });
+        });
     },
 
-    subscribeToMessages (room) {
+    subscribeToMessages (room, callback) {
         if (this._unsubscribe) {
             this._unsubscribe();
         }
 
         this._unsubscribe = subscribeToMessages(room, (messages) => {
-            this.setState({ messages });
+            callback(null, messages);
         });
+        callback('error');
     },
 
     handleSubmit (e) {
@@ -105,26 +124,37 @@ var Room = React.createClass({
     },
 
     handleFilterChange (e) {
-        this.state.filters.active = e.active;
-        this.state.filters.value = e.value;
-        var messages = this.state.messages.filter(function (message) {
-            if (e.active && e.value) {
-                if (e.active === message.active || e.value === message.value) {
+        var t = this;
+
+        t.state.filters.active = e.active;
+        t.state.filters.value = e.value;
+        t.setState({
+            filters: t.state.filters
+        });
+    },
+
+    getMessages: function () {
+        var t = this,
+            filters = t.state.filters;
+
+        return t.state.messages.filter(function (message) {
+            if (filters.active && filters.value) {
+                if (filters.active === 'message' && message.text.indexOf(filters.value) !== -1) {
+                    return true;
+                }
+                if (filters.active === 'name' && message.username.indexOf(filters.value) !== -1) {
                     return true;
                 }
                 return false;
             }
             return true;
         });
-        this.setState({
-            filters: this.state.filters,
-            messages: messages
-        });
     },
 
     render () {
         var { auth} = this.props;
         var { messages, filters} = this.state;
+        var messages = this.getMessages();
 
         return <div className="room">
             <h1 className="room-title">general</h1>
@@ -240,31 +270,34 @@ var Filter = React.createClass({
         }
     },
 
-    getInitialState () {
+    getState (props) {
+        props = props || this.props;
         return {
-            active: this.props.filters.active,
-            value: this.props.filters.value
-        }
+            active: props.filters.active,
+            value: props.filters.value
+        };
+    },
+
+    getInitialState (props) {
+        return this.getState();
     },
 
     onSelect (e) {
-        this.setState({
-            active: e.target.value
-        });
         this.props.onChange && this.props.onChange({
-            active: this.state.active,
+            active: e.target.value,
             value: this.state.value
         });
     },
 
     onInputChange (e) {
-        this.setState({
-            value: e.target.value
-        });
         this.props.onChange && this.props.onChange({
             active: this.state.active,
-            value: this.state.value
+            value: e.target.value
         });
+    },
+
+    componentWillReceiveProps (nextProps) {
+        this.setState(this.getState(nextProps));
     },
 
     render () {
@@ -279,7 +312,7 @@ var Filter = React.createClass({
                 type="text"
                 value={this.state.value}
                 onChange={this.onInputChange}
-                placeholder="Please type for filter..." 
+                placeholder="Please type for filter..."
             />
         </div>
     }
